@@ -79,7 +79,7 @@ class CSPLayer(nn.Module):
 
 
 class CSPDualFPN(nn.Module):
-    def __init__(self, num_class_seg, resolution=416, phi='S0', use_spp=True, backbone='ef'):
+    def __init__(self, num_class_seg, phi='S0', use_spp=True):
         super(CSPDualFPN, self).__init__()
 
         self.phi = phi

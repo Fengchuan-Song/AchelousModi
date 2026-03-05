@@ -40,62 +40,15 @@ class Upsample(nn.Module):
 
 
 class GhostDualFPN(nn.Module):
-    def __init__(self, num_class_seg, resolution=416, phi='S0', use_spp=True, backbone='ef'):
+    def __init__(self, num_class_seg, phi='S0', use_spp=True):
         super(GhostDualFPN, self).__init__()
 
         self.phi = phi
         self.channel_widths = image_encoder_width[phi]
         self.use_spp = use_spp
-        self.resolution = resolution
         self.num_class_seg = num_class_seg
         if self.num_class_seg > 31:
             assert "class number of semantic segmentation must be smaller than 32 (<=31)"
-
-        if phi == 'S0':
-            if backbone == 'ef':
-                self.backbone = image_encoder_s0(resolution=resolution)
-            elif backbone == 'mv':
-                self.backbone = mobilevit_xxs(resolution=resolution)
-            elif backbone == 'en':
-                self.backbone = edgenext_xx_small()
-            elif backbone == 'ev':
-                self.backbone = edgevit_xxs(resolution=resolution)
-            elif backbone == 'rv':
-                self.backbone = repvit_m1()
-            elif backbone == 'pf':
-                self.backbone = poolformer_S0()
-
-        elif phi == 'S1':
-            if backbone == 'ef':
-                self.backbone = image_encoder_s1(resolution=resolution)
-            elif backbone == 'mv':
-                self.backbone = mobilevit_xs(resolution=resolution)
-            elif backbone == 'en':
-                self.backbone = edgenext_x_small()
-            elif backbone == 'ev':
-                self.backbone = edgevit_xs(resolution=resolution)
-            elif backbone == 'rv':
-                self.backbone = repvit_m2()
-            elif backbone == 'pf':
-                self.backbone = poolformer_S1()
-
-        elif phi == 'S2':
-            if backbone == 'ef':
-                self.backbone = image_encoder_s2(resolution=resolution)
-            elif backbone == 'mv':
-                self.backbone = mobilevit_s(resolution=resolution)
-            elif backbone == 'en':
-                self.backbone = edgenext_small()
-            elif backbone == 'ev':
-                self.backbone = edgevit_s(resolution=resolution)
-            elif backbone == 'rv':
-                self.backbone = repvit_m3()
-            elif backbone == 'pf':
-                self.backbone = poolformer_S2()
-
-        elif phi == 'L':
-            self.backbone = image_encoder_l(resolution=resolution)
-            print("Only EfficientFormer V2 supports L size model.")
 
         if use_spp:
             self.spp = SPP(c1=self.channel_widths[-1], c2=self.channel_widths[-1])
@@ -153,8 +106,8 @@ class GhostDualFPN(nn.Module):
 
         # self.fpn_stage5_det = GhostModule(inp=self.channel_widths[-1], oup=self.channel_widths[-1]*2)
 
-    def forward(self, x):
-        map_stage2, map_stage3, map_stage4, map_stage5 = self.backbone(x)
+    def forward(self, image_feature):
+        map_stage1, map_stage2, map_stage3, map_stage4, map_stage5 = image_feature
 
         # fpn_stage5_det = self.fpn_stage5_det(map_stage5)
 

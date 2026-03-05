@@ -5,7 +5,6 @@ import time
 from thop import profile
 from thop import clever_format
 from torchinfo import summary
-from backbone.vision.ImageEncoder import *
 from neck.spp import *
 from backbone.conv_utils.normal_conv import *
 from backbone.conv_utils.ghost_conv import *
@@ -13,6 +12,12 @@ from backbone.IREncoder import IREncoder
 from backbone.attention_modules.shuffle_attention import *
 from head.decouplehead import DecoupleHead
 from nets.pointcloudseg.pointnet2.pointnet_sem_seg import PointNet_SEG
+from encoder.ImageEncoder import ImageEncoder
+from encoder.RadarEncoder import RCNet
+from neck.ghostdualfpn import GhostDualFPN
+from neck.cspdualfpn import CSPDualFPN
+from neck.repdualfpn import RepDualFPN
+from fusion.fusion_origin import FusionOrigin
 
 
 image_encoder_width = {
@@ -61,19 +66,29 @@ class Achelous3T(nn.Module):
         self.num_det = num_det
         self.num_seg = num_seg
         self.resolution = resolution
-
         self.phi = phi
         self.image_channels = image_channels
         self.radar_channels = radar_channels
 
-        self.image_radar_encoder = IREncoder(num_class_seg=num_seg, resolution=resolution, backbone=backbone, neck=neck,
-                                             phi=phi, use_spp=spp, radar_channels=self.radar_channels)
+        self.image_encoder = ImageEncoder(resolution=resolution, phi=phi, backbone=backbone)
+        self.radar_encoder = RCNet(in_channels=radar_channels, phi=phi)
+        if neck == 'gdf':
+            self.fpn = GhostDualFPN(num_class_seg=num_seg, phi=phi, use_spp=spp)
+        elif neck == 'cdf':
+            self.fpn = CSPDualFPN(num_class_seg=num_seg, phi=phi, use_spp=spp)
+        elif neck == 'rdf':
+            self.fpn = RepDualFPN(num_class_seg=num_seg, phi=phi, resolution=resolution, use_spp=spp,
+                                  backbone=backbone)
+        self.fusion = FusionOrigin(phi=phi)
         self.det_head = DecoupleHead(num_classes=num_det, phi=phi, nano_head=nano_head)
 
-    def forward(self, x, x_radar):
-        fpn_out, se_seg_output, lane_seg_output = self.image_radar_encoder(x, x_radar)
-        det_output = self.det_head(fpn_out)
-        return det_output, se_seg_output, lane_seg_output
+    def forward(self, input_image, input_radar):
+        image_feature1, image_feature2, image_feature3, image_feature4, image_feature5 = self.image_encoder(input_image)
+        radar_feature1, radar_feature2, radar_feature3, radar_feature4, radar_feature5 = self.radar_encoder(input_radar)
+        se_seg_output, line_seg_output, fpn_out, = self.fpn((image_feature1, image_feature2, image_feature3, image_feature4, image_feature5))
+        fusion_feature = self.fusion(fpn_out, (radar_feature3, radar_feature4, radar_feature5))
+        det_output = self.det_head(fusion_feature)
+        return det_output, se_seg_output, line_seg_output
 
 
 if __name__ == '__main__':

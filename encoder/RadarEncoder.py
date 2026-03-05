@@ -100,7 +100,7 @@ class RCNet(nn.Module):
         output_features = []
         for i, block in enumerate(self.rc_blocks):
             x = block(x)
-            if i == 0 or (i > 1 and i % 2 == 1):
+            if i == 0 or  i % 2 == 1:
                 output_features.append(x)
         return output_features
 
