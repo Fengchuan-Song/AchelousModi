@@ -37,13 +37,13 @@ if __name__ == "__main__":
     parser.add_argument("--ddp", type=str, default="False")
     parser.add_argument("--fp16", type=str, default="True")
     parser.add_argument("--is_pc", help="use pc seg", type=str, default="False")
-    parser.add_argument("--backbone", type=str, default='mo')
-    parser.add_argument("--neck", type=str, default='rdf')
+    parser.add_argument("--backbone", type=str, default='mv')
+    parser.add_argument("--neck", type=str, default='gdf')
     parser.add_argument("--nd", type=str, default="True")
     parser.add_argument("--phi", type=str, default='S0')
     parser.add_argument("--resolution", type=int, default=320)
     parser.add_argument("--bs", type=int, default=32)
-    parser.add_argument("--epoch", type=int, default=100)
+    parser.add_argument("--epoch", type=int, default=300)
     parser.add_argument("--lr_init", type=float, default=0.03)
     parser.add_argument("--lr_decay", type=str, default="cos")
     parser.add_argument("--opt", type=str, default='sgd')
@@ -54,12 +54,12 @@ if __name__ == "__main__":
     parser.add_argument("--focal", type=str, default="True")
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
-    parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous')
-    parser.add_argument('--wandb_path', type=str, default='../autodl-tmp/wandb', help='path of saving wandb files locally')
-    parser.add_argument('--wandb_name', type=str, default='Achelous-0',
+    parser.add_argument("--data_root", type=str, default='/data_ssd/datasets/WaterScenes')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2')
+    parser.add_argument('--wandb_path', type=str, default='/data/Achelous_v2/wandb', help='path of saving wandb files locally')
+    parser.add_argument('--wandb_name', type=str, default='Achelous-v1.0-MIPC-2',
                         help='name of current training procedure of wandb')
-    parser.add_argument('--description', type=str, default='Origin version of Achelous++, training from scratch',
+    parser.add_argument('--description', type=str, default='Origin version of Achelous++, training from scratch, second time training, four channels of radar features(range, elevation, velocity, and power)',
                         help='version description of the being trained model')
 
     args = parser.parse_args()
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     save_period = 5
     # ------------------------------------------------------------------#
-    #   weight_save_dir        权值保存的文件夹
+    #   weight_save_dir        权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
     weight_save_dir = os.path.join(args.save_dir, 'weights')
     if not os.path.exists(weight_save_dir):
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     #   （一）此处获得的mAP为验证集的mAP。
     #   （二）此处设置评估参数较为保守，目的是加快评估速度。
     # ------------------------------------------------------------------#
-    eval_flag = True
+    eval_flag = False
     eval_period = 10
     # ------------------------------------------------------------------#
     #   num_workers     用于设置是否使用多线程读取数据
@@ -230,13 +230,13 @@ if __name__ == "__main__":
     # ----------------------------------------------------#
     # 雷达feature map路径
     # ----------------------------------------------------#
-    radar_file_path = args.data_root + "/radar/VOCradar320"
+    radar_file_path = args.data_root + "/radar/VOCradar320_v2"
 
     # ----------------------------------------------------#
     #   获得目标检测图片路径和标签
     # ----------------------------------------------------#
-    train_annotation_path = args.data_root + '/autodl/2007_train.txt'
-    val_annotation_path = args.data_root + '/autodl/2007_val.txt'
+    train_annotation_path = args.data_root + '/MIPC/2007_train.txt'
+    val_annotation_path = args.data_root + '/MIPC/2007_val.txt'
 
     # ----------------------------------------------------#
     #   jpg图像路径
@@ -308,9 +308,9 @@ if __name__ == "__main__":
     cls_weights_wl = np.ones([2], np.float32)
 
     # ------------------------------------------------------------------#
-    #   save_dir_seg        分割权值与日志文件保存的文件夹
+    #   save_dir_seg        日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir = os.path.join(args.save_dir, 'log_detection')
+    save_dir = os.path.join(args.save_dir, 'logs_detection')
     save_dir_seg = os.path.join(args.save_dir, 'logs_seg')
     save_dir_seg_wl = os.path.join(args.save_dir, 'logs_seg_line')
     save_dir_seg_pc = os.path.join(args.save_dir, 'logs_seg_pc')
@@ -716,8 +716,8 @@ if __name__ == "__main__":
             fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history_seg, loss_history_seg_wl,
                           loss_history_seg_pc, eval_callback, eval_callback_seg, eval_callback_seg_wl,
                           eval_callback_seg_pc, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val,
-                          UnFreeze_Epoch, Cuda, fp16, scaler, save_period, weight_save_dir, dice_loss, focal_loss, cls_weights,
-                          cls_weights_wl, num_classes_seg, local_rank, is_radar_pc_seg)
+                          UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, dice_loss, focal_loss, cls_weights,
+                          cls_weights_wl, num_classes_seg, weight_save_dir, local_rank, is_radar_pc_seg)
 
             if distributed:
                 dist.barrier()
