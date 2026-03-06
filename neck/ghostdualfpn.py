@@ -107,7 +107,7 @@ class GhostDualFPN(nn.Module):
         # self.fpn_stage5_det = GhostModule(inp=self.channel_widths[-1], oup=self.channel_widths[-1]*2)
 
     def forward(self, image_feature):
-        map_stage1, map_stage2, map_stage3, map_stage4, map_stage5 = image_feature
+        map_stage3, map_stage4, map_stage5 = image_feature
 
         # fpn_stage5_det = self.fpn_stage5_det(map_stage5)
 

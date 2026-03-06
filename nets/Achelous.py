@@ -85,7 +85,7 @@ class Achelous3T(nn.Module):
     def forward(self, input_image, input_radar):
         image_feature1, image_feature2, image_feature3, image_feature4, image_feature5 = self.image_encoder(input_image)
         radar_feature1, radar_feature2, radar_feature3, radar_feature4, radar_feature5 = self.radar_encoder(input_radar)
-        se_seg_output, line_seg_output, fpn_out, = self.fpn((image_feature1, image_feature2, image_feature3, image_feature4, image_feature5))
+        se_seg_output, line_seg_output, fpn_out, = self.fpn((image_feature3, image_feature4, image_feature5))
         fusion_feature = self.fusion(fpn_out, (radar_feature3, radar_feature4, radar_feature5))
         det_output = self.det_head(fusion_feature)
         return det_output, se_seg_output, line_seg_output
