@@ -36,16 +36,18 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", type=str, default="True")
     parser.add_argument("--ddp", type=str, default="False")
     parser.add_argument("--is_pc", help="use pc seg", type=str, default="False")
-    parser.add_argument("--backbone", type=str, default='mo')
-    parser.add_argument("--neck", type=str, default='rdf')
+    parser.add_argument("--model_path", type=str, default='/data/Achelous_v2/weights/ep230-loss2.620-det_val_loss2.107-seg_val_loss0.241-seg_wl_val_loss0.273.pth')
+    parser.add_argument("--backbone", type=str, default='mv')
+    parser.add_argument("--neck", type=str, default='gdf')
     parser.add_argument("--nd", type=str, default="True")
     parser.add_argument("--phi", type=str, default='S0')
     parser.add_argument("--resolution", type=int, default=320)
     parser.add_argument("--pc_num", type=int, default=512)
+    parser.add_argument("--rader_channels", type=int, default=4)
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
-    parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous')
+    parser.add_argument("--data_root", type=str, default='/data_ssd/datasets/WaterScenes')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2')
 
     args = parser.parse_args()
 
@@ -68,7 +70,7 @@ if __name__ == "__main__":
     #                   训练前一定要修改classes_path，使其对应自己的数据集
     # ---------------------------------------------------------------------#
     classes_path = 'model_data/waterscenes_benchmark.txt'
-    model_path = ''
+    model_path = args.model_path
 
     # ------------------------------------------------------#
     #   backbone (4 options): ef (EfficientFormer), en (EdgeNeXt), ev (EdgeViT), mv (MobileViT), rv (RepViT), pf (PoolFormer), mo (MobileOne), fv (FastViT)
@@ -103,6 +105,12 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     save_period = 5
     # ------------------------------------------------------------------#
+    #   save_dir        权值与日志文件保存的文件夹
+    # ------------------------------------------------------------------#
+    save_dir = os.path.join(args.save_dir, 'weights_origin')
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    # ------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
     #   eval_period     代表多少个epoch评估一次，不建议频繁的评估
@@ -118,13 +126,13 @@ if __name__ == "__main__":
     # ----------------------------------------------------#
     # 雷达feature map路径
     # ----------------------------------------------------#
-    radar_file_path = args.data_root + "/radar/VOCradar320"
+    radar_file_path = args.data_root + "/radar/VOCradar320_v2"
 
     # ----------------------------------------------------#
     #   获得目标检测图片路径和标签
     # ----------------------------------------------------#
-    train_annotation_path = args.data_root + '/autodl/2007_train.txt'
-    val_annotation_path = args.data_root + '/autodl/2007_val.txt'
+    train_annotation_path = args.data_root + '/MIPC/2007_train.txt'
+    val_annotation_path = args.data_root + '/MIPC/2007_val.txt'
 
     # ----------------------------------------------------#
     #   jpg图像路径
@@ -187,7 +195,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir_seg        分割权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir = os.path.join(args.save_dir, 'log_detection')
+    save_dir = os.path.join(args.save_dir, 'logs_detection')
     save_dir_seg = os.path.join(args.save_dir, 'logs_seg')
     save_dir_seg_wl = os.path.join(args.save_dir, 'logs_seg_line')
     save_dir_seg_pc = os.path.join(args.save_dir, 'logs_seg_pc')
@@ -227,7 +235,7 @@ if __name__ == "__main__":
     else:
         model = Achelous3T(resolution=input_shape[0], num_det=num_classes, num_seg=num_classes_seg, phi=phi,
                            backbone=backbone, neck=neck, spp=spp,
-                           nano_head=lightweight).cuda(local_rank)
+                           nano_head=lightweight, radar_channels=args.rader_channels).cuda(local_rank)
     weights_init(model)
     if model_path != '':
         # ------------------------------------------------------#
@@ -262,10 +270,10 @@ if __name__ == "__main__":
     #   记录Loss
     # ----------------------#
     time_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d_%H_%M_%S')
-    log_dir = os.path.join(save_dir, "loss_" + str(time_str))
-    log_dir_seg = os.path.join(save_dir_seg, "loss_" + str(time_str))
-    log_dir_seg_wl = os.path.join(save_dir_seg_wl, "loss_" + str(time_str))
-    log_dir_seg_pc = os.path.join(save_dir_seg_pc, "loss_" + str(time_str))
+    log_dir = os.path.join(save_dir, "eval_" + str(time_str))
+    log_dir_seg = os.path.join(save_dir_seg, "eval_" + str(time_str))
+    log_dir_seg_wl = os.path.join(save_dir_seg_wl, "eval_" + str(time_str))
+    log_dir_seg_pc = os.path.join(save_dir_seg_pc, "eval_" + str(time_str))
 
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
