@@ -713,11 +713,14 @@ if __name__ == "__main__":
 
             set_optimizer_lr(optimizer, lr_scheduler_func, epoch)
 
-            fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history_seg, loss_history_seg_wl,
-                          loss_history_seg_pc, eval_callback, eval_callback_seg, eval_callback_seg_wl,
-                          eval_callback_seg_pc, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val,
-                          UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, dice_loss, focal_loss, cls_weights,
-                          cls_weights_wl, num_classes_seg, weight_save_dir, local_rank, is_radar_pc_seg)
+            fit_one_epoch(model_train=model_train, model=model, ema=ema, yolo_loss=yolo_loss, loss_history=loss_history,
+                          loss_history_seg=loss_history_seg, loss_history_seg_wl=loss_history_seg_wl, 
+                          loss_history_seg_pc=loss_history_seg_pc, eval_callback=eval_callback, eval_callback_seg=eval_callback_seg,
+                          eval_callback_seg_w=eval_callback_seg_wl, eval_callback_seg_pc=eval_callback_seg_pc, optimizer=optimizer,
+                          epoch=epoch, epoch_step=epoch_step, epoch_step_val=epoch_step_val, gen=gen, gen_val=gen_val, Epoch=UnFreeze_Epoch,
+                          cuda=Cuda, fp16=fp16, scaler=scaler, save_period=save_period, weight_save_dir=weight_save_dir, dice_loss=dice_loss,
+                          focal_loss=focal_loss, cls_weights=cls_weights, cls_weights_wl=cls_weights_wl, num_class_seg=num_classes_seg,
+                          local_rank=local_rank, is_radar_pc_seg=is_radar_pc_seg )
 
             if distributed:
                 dist.barrier()
