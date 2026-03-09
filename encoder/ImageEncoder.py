@@ -82,4 +82,4 @@ class ImageEncoder(nn.Module):
     def forward(self, input):
         map_stage1, map_stage2, map_stage3, map_stage4, map_stage5 = self.backbone(input)
 
-        return map_stage1, map_stage2, map_stage3, map_stage4, map_stage5
+        return (map_stage1, map_stage2, map_stage3, map_stage4, map_stage5)
