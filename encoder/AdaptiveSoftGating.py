@@ -34,7 +34,7 @@ class AdaptiveSoftGating(nn.Module):
             self.dcn = DeformConv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=self.kernel_size, 
                                     padding=self.kernel_size//2, stride=1)
             
-            self.aggrate = nn.Conv2d(in_channels=in_channels, out_channels=self.channels)
+            self.aggrate = nn.Conv2d(in_channels=in_channels, out_channels=self.channels, kernel_size=1)
 
         self.conv = nn.Conv2d(in_channels=self.channels, out_channels=1, kernel_size=3, padding=1,
                               padding_mode='reflect')
