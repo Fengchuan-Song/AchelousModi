@@ -83,3 +83,14 @@ class ImageEncoder(nn.Module):
         map_stage1, map_stage2, map_stage3, map_stage4, map_stage5 = self.backbone(input)
 
         return (map_stage1, map_stage2, map_stage3, map_stage4, map_stage5)
+
+
+if __name__ == "__main__":
+    input = torch.ones([1, 3, 320, 320])
+
+    model = ImageEncoder(resolution=320, phi='S0', backbone='mv')
+
+    output_features = model(input)
+
+    for each in output_features:
+        print(each.shape)
