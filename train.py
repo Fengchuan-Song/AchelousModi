@@ -11,7 +11,8 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from nets.Achelous import *
+# from nets.Achelous import *
+from nets.Achelous_gate import *
 from loss.detection_loss import (ModelEMA, YOLOLoss, get_lr_scheduler,
                                 set_optimizer_lr, weights_init)
 from utils.callbacks import LossHistory, EvalCallback
@@ -55,11 +56,11 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='/data_ssd/datasets/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2.1')
-    parser.add_argument('--wandb_path', type=str, default='/data/Achelous_v2.1/wandb', help='path of saving wandb files locally')
-    parser.add_argument('--wandb_name', type=str, default='Achelous-v2.0-MIPC-1',
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2.2')
+    parser.add_argument('--wandb_path', type=str, default='/data/Achelous_v2.2/wandb', help='path of saving wandb files locally')
+    parser.add_argument('--wandb_name', type=str, default='Achelous-v2.2-MIPC-1',
                         help='name of current training procedure of wandb')
-    parser.add_argument('--description', type=str, default='Decoupled version of Achelous++, training from scratch, test training, four channels of radar features(range, elevation, velocity, and power)',
+    parser.add_argument('--description', type=str, default='Decoupled version of Achelous++ with soft gate, training from scratch, test training, four channels of radar features(range, elevation, velocity, and power)',
                         help='version description of the being trained model')
 
     args = parser.parse_args()
