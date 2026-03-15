@@ -98,6 +98,12 @@ class ImRaEncoder(nn.Module):
         self.radar_aggre2 = nn.Conv2d(in_channels=image_encoder_width[phi][0] * 2, out_channels=image_encoder_width[phi][0], kernel_size=1)
         self.radar_aggre3 = nn.Conv2d(in_channels=image_encoder_width[phi][3] * 2, out_channels=image_encoder_width[phi][3], kernel_size=1)
 
+        self.radar_batchnorm1 = nn.BatchNorm2d(num_features=radar_channels)
+        self.radar_batchnorm2 = nn.BatchNorm2d(num_features=image_encoder_width[phi][0])
+        self.radar_batchnorm3 = nn.BatchNorm2d(num_features=image_encoder_width[phi][3])
+
+        self.activate = nn.ReLU(inplace=True)
+
 
     def forward(self, input_image, input_radar):
         # image encoder
@@ -109,12 +115,16 @@ class ImRaEncoder(nn.Module):
         gate1 = self.gate1(input_image)
         # input_radar = input_radar + gate1 * input_radar
         input_radar = self.radar_aggre1(torch.cat([input_radar, gate1 * input_radar], dim=1))
+        input_radar = self.radar_batchnorm1(input_radar)
+        input_radar = self.activate(input_radar)
         # block-0 --> feat 1: image_encoder_width[phi][0] // 4 x H/2 x W/2
         radar_feature1 = self.rc_blocks[0](input_radar)
         # block-1 --> feat 2: image_encoder_width[phi][0] // 4 x H/4 x W/4 --> soft gate 2
         radar_feature2 = self.rc_blocks[1](radar_feature1)
         gate2 = self.gate2(image_feature2)
         radar_feature2 = self.radar_aggre2(torch.cat([radar_feature2, gate2 * radar_feature2]))
+        radar_feature2 = self.radar_batchnorm2(radar_feature2)
+        radar_feature2 = self.activate(radar_feature2)
         # block-2 + block-3 --> feat 3: image_encoder_width[phi][1] // 4 x H/4 x W/4
         # radar_feature3 = self.rc_blocks[2](radar_feature2 + gate2 * radar_feature2)
         radar_feature3 = self.rc_blocks[2](radar_feature2)
@@ -128,5 +138,7 @@ class ImRaEncoder(nn.Module):
         gate3 = self.gate3(image_feature5)
         # radar_feature5 = radar_feature5 + gate3 * radar_feature5
         radar_feature5 = self.radar_aggre3(torch.cat([radar_feature5, gate3 * radar_feature5], dim=1))
+        radar_feature5 = self.radar_batchnorm3(radar_feature5)
+        radar_feature5 = self.activate(radar_feature5)
 
         return image_features, (radar_feature1, radar_feature2, radar_feature3, radar_feature4, radar_feature5)
