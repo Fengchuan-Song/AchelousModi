@@ -11,7 +11,8 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from nets.Achelous import *
+# from nets.Achelous import *
+from nets.Achelous_gate import *
 from loss.detection_loss import (ModelEMA, YOLOLoss, get_lr_scheduler,
                                 set_optimizer_lr, weights_init)
 from utils.callbacks import LossHistory, EvalCallback
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", type=str, default="True")
     parser.add_argument("--ddp", type=str, default="False")
     parser.add_argument("--is_pc", help="use pc seg", type=str, default="False")
-    parser.add_argument("--model_path", type=str, default='/data/Achelous_v2/weights/ep230-loss2.620-det_val_loss2.107-seg_val_loss0.241-seg_wl_val_loss0.273.pth')
+    parser.add_argument("--model_path", type=str, default='/data/Achelous_v2.2/weights/ep230-loss2.616-det_val_loss2.111-seg_val_loss0.238-seg_wl_val_loss0.267.pth')
     parser.add_argument("--backbone", type=str, default='mv')
     parser.add_argument("--neck", type=str, default='gdf')
     parser.add_argument("--nd", type=str, default="True")
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='/data_ssd/datasets/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous_v2.2')
 
     args = parser.parse_args()
 
